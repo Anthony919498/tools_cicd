@@ -1,18 +1,34 @@
-provider "aws" {
-  region = "us-east-2"
-}
-
 # Variables normalement dans un autre fichier (variables.tf) mais pour faire simple.... ca marche aussi !!!
 variable "env" {
   type    = string
   default = "dev"
 }
+
+# Region par défaut
+variable "aws-region" {
+  default = "us-east-2"
+}
+
+# Port par defaut
+variable "default-port" {
+  default = 443
+}
+
+# Type Instance par défaut
+variable "instance_type" {
+  default = "t2.micro"
+}
+
+provider "aws" {
+  region = "${var.aws-region}"
+}
+
 terraform {
   backend "s3" {
     }
 }
 ####################################################################
-# On recherche la derniere AMI créée avec le Name TAG PackerAnsible-Apache
+# On recherche la derniere AMI créée avec le Name TAG DEV-WebApache-AMI
 data "aws_ami" "selected" {
   owners = ["self"]
   filter {
@@ -88,9 +104,9 @@ resource "aws_security_group" "web-sg-asg" {
     cidr_blocks = ["0.0.0.0/0"]
   }
   ingress {
-    from_port       = 443
+    from_port       = "${var.default-port}"
     protocol        = "tcp"
-    to_port         = 443
+    to_port         = "${var.default-port}"
     security_groups = [aws_security_group.web-sg-elb.id] # on authorise en entrée de l'ASG que le flux venant de l'ELB
   }
   lifecycle {
@@ -108,9 +124,9 @@ resource "aws_security_group" "web-sg-elb" {
     cidr_blocks = ["0.0.0.0/0"]
   }
   ingress {
-    from_port   = 443
+    from_port   = "${var.default-port}"
     protocol    = "tcp"
-    to_port     = 443
+    to_port     = "${var.default-port}"
     cidr_blocks = ["0.0.0.0/0"]   # Normalement Ouvert sur le web sauf dans le cas d'un site web Privé(Exemple Intranet ou nous qui ne voulons pas exposer le site)
   }
   lifecycle {
@@ -121,7 +137,7 @@ resource "aws_security_group" "web-sg-elb" {
 # ASG Launch Configuration
 resource "aws_launch_configuration" "web-lc" {
   image_id      = data.aws_ami.selected.id
-  instance_type = "t2.micro"
+  instance_type = "${var.instance_type}"
   #  key_name = ""  # Si vous voulez utiliser une KeyPair pour vous connecter aux instances
   security_groups = [aws_security_group.web-sg-asg.id]
   lifecycle {
@@ -157,9 +173,9 @@ resource "aws_elb" "web-elb" {
   security_groups = [aws_security_group.web-sg-elb.id]
 
   listener {
-    instance_port     = 443
+    instance_port     = "${var.default-port}"
     instance_protocol = "http"
-    lb_port           = 443
+    lb_port           = "${var.default-port}"
     lb_protocol       = "http"
   }
 
