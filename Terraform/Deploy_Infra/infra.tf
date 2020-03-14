@@ -21,6 +21,22 @@ terraform {
   backend "s3" {
     }
 }
+
+
+data "aws_ami" "selected" {
+  owners = ["self"]
+  filter {
+    name   = "state"
+    values = ["available"]
+
+  }
+  filter {
+   name   = "tag:Name"
+    values = ["DEV-WebApache-AMI"]
+  }
+  most_recent = true
+}
+
 # VPC
 resource "aws_vpc" "vpc" {
   cidr_block           = "10.0.0.0/16"
@@ -114,7 +130,7 @@ resource "aws_subnet" "subnet-private-3" {
 
 # Nat Instance
 resource "aws_instance" "nat" {
-  ami                    = "ami-005fbf7c0479755da"
+  ami                    = data.aws_ami.selected.id
   instance_type          = "${var.instance_type}"
   subnet_id              = aws_subnet.subnet-public-1.id
   vpc_security_group_ids = [aws_security_group.allow_nat.id]
