@@ -1,7 +1,7 @@
 # Variables normalement dans un autre fichier (variables.tf) mais pour faire simple.... ca marche aussi !!!
 variable "env" {
   type    = string
-  default = "dev"
+  default = "DEV"
 }
 
 # Region par défaut
