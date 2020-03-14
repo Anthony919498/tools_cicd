@@ -25,7 +25,9 @@ filter {
 name = "virtualization-type"
 values = ["hvm"]
 }
+  owners = ["344962933937"]
   }
+
 provider "aws" {
   region = "${var.aws-region}"
 }
