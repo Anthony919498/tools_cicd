@@ -32,7 +32,7 @@ data "aws_ami" "selected" {
   }
   filter {
    name   = "tag:Name"
-    values = ["DEV-WebApache-AMI"]
+    values = ["${var.env}-WebApache-AMI"]
   }
   most_recent = true
 }
